@@ -88,50 +88,46 @@ func (s *Sudoku) Solve() (*Sudoku, error) {
 	return solver.Solve()
 }
 
-func (s *Sudoku) isValid() bool {
-	// Check rows
+func (s *Sudoku) IsCellValid(x, y int) bool {
+	if s.board[x][y] == 0 {
+		return true
+	}
+	
+	// Check row
 	for i := 0; i < _gridSize; i++ {
-		seen := make(map[int]bool)
+		if i != x && s.board[i][y] == s.board[x][y] {
+			return false
+		}
+	}
+
+	// Check column
+	for i := 0; i < _gridSize; i++ {
+		if i != y && s.board[x][i] == s.board[x][y] {
+			return false
+		}
+	}
+
+	// Check 3x3 square
+	startRow, startCol := x - x % 3, y - y % 3
+	for i := startRow; i < startRow + 3; i++ {
+		for j := startCol; j < startCol + 3; j++ {
+			if i != x && j != y && s.board[i][j] == s.board[x][y] {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func (s *Sudoku) isValid() bool {
+	for i := 0; i < _gridSize; i++ {
 		for j := 0; j < _gridSize; j++ {
-			if s.board[i][j] != 0 {
-				if seen[s.board[i][j]] {
-					return false
-				}
-				seen[s.board[i][j]] = true
+			if s.board[i][j] != 0 && !s.IsCellValid(i, j) {
+				return false
 			}
 		}
 	}
-
-	// Check columns
-	for j := 0; j < _gridSize; j++ {
-		seen := make(map[int]bool)
-		for i := 0; i < _gridSize; i++ {
-			if s.board[i][j] != 0 {
-				if seen[s.board[i][j]] {
-					return false
-				}
-				seen[s.board[i][j]] = true
-			}
-		}
-	}
-
-	// Check 3x3 squares
-	for i := 0; i < _gridSize; i += 3 {
-		for j := 0; j < _gridSize; j += 3 {
-			seen := make(map[int]bool)
-			for k := i; k < i + 3; k++ {
-				for l := j; l < j + 3; l++ {
-					if s.board[k][l] != 0 {
-						if seen[s.board[k][l]] {
-							return false
-						}
-						seen[s.board[k][l]] = true
-					}
-				}
-			}
-		}
-	}
-
 	return true
 }
 

@@ -101,10 +101,22 @@ func (m *model) View() string {
 				cell = " " // Empty cells are represented with 0. Render them as spaces
 			}
 
+			isCellSelected := i == m.cursorY && j == m.cursorX
+			isCellValid := m.sudoku.IsCellValid(i, j)
+
 			cellBg := ""
 			cellFg := "F"
-			if i == m.cursorY && j == m.cursorX {
-				cellBg = "#FFA500" // Highlight the cell the cursor is on
+			if isCellSelected {
+				if isCellValid {
+					// Highlight the cell the cursor is on
+					cellBg = "#FFA500"
+				} else {
+					// Highlight in light red if the cell is invalid and selected
+					cellBg = "#FF7547"
+				}
+			} else if !isCellValid {
+				// Highlight in red if the cell is invalid
+				cellBg = "#FF3030"
 			}
 			s += lipgloss.NewStyle().
 				Background(lipgloss.Color(cellBg)).
