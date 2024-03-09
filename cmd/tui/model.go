@@ -9,6 +9,8 @@ import (
 	"sudoku/sudoku"
 )
 
+var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
+
 type model struct {
 	cursorX int
 	cursorY int
@@ -123,6 +125,8 @@ func (m *model) View() string {
 		}
 	}
 
+	helpText := helpStyle("  ←/↑/↓/→: Navigate • q: Quit")
+
 	// Send the UI for rendering
-	return title + "\n" + gameBoarder.Render(s)
+	return title + "\n" + gameBoarder.Render(s) + "\n" + helpText + "\n"
 }
