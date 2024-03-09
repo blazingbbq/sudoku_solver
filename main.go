@@ -21,11 +21,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Print("Sudoku: \n", sudoku.String())
+	fmt.Print("Sudoku: \n", sudoku.String(), "\n")
 
 	solution, err := sudoku.Solve()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Print("Solution: \n", solution.String())
+	fmt.Print("Solution: \n", solution.String(), "\n")
 }

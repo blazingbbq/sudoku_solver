@@ -47,6 +47,8 @@ func (s *Solver) Solve() (*Sudoku, error) {
 }
 
 func (s *Solver) solveNextCell() error {
+	s.initPossibleValues() // TODO: optimize this (only update affected cells)
+
 	// Find the cell with the fewest possible values
 	minI, minJ := -1, -1
 	minLen := _gridSize + 1
@@ -66,7 +68,7 @@ func (s *Solver) solveNextCell() error {
 
 	// Check that there are empty cells left
 	if minI == -1 {
-		return errors.New("no empty cell found")
+		return errors.New("no empty cell with possible values found")
 	}
 
 	// Ensure that the cell with the least possible values only has one possible
@@ -77,7 +79,6 @@ func (s *Solver) solveNextCell() error {
 
 	// Solve the cell
 	s.sudoku.board[minI][minJ] = s.possibleValues[minI][minJ][0]
-	s.initPossibleValues() // TODO: optimize this (only update affected cells)
 	return nil
 }
 
