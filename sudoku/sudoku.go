@@ -1,4 +1,4 @@
-package main
+package sudoku
 
 import (
 	"errors"
@@ -13,6 +13,14 @@ type Sudoku struct {
 
 func NewSudoku() *Sudoku {
 	return &Sudoku{}
+}
+
+func (s *Sudoku) GetBoard() [9][9]int {
+	return s.board
+}
+
+func (s *Sudoku) SetCell(row, col, value int) {
+	s.board[row][col] = value
 }
 
 func (s *Sudoku) ReadFromStrings(lines []string) (*Sudoku, error) {

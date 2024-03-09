@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"sudoku/sudoku"
 )
 
 func main() {
@@ -17,7 +19,7 @@ func main() {
 		lines = append(lines, text)
 	}
 
-	sudoku, err := NewSudoku().ReadFromStrings(lines)
+	sudoku, err := sudoku.NewSudoku().ReadFromStrings(lines)
 	if err != nil {
 		log.Fatal(err)
 	}
