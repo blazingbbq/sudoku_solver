@@ -22,7 +22,7 @@ func NewSolver(sudoku *Sudoku) *Solver {
 func (s *Solver) initPossibleValues() {
 	for i := 0; i < _gridSize; i++ {
 		for j := 0; j < _gridSize; j++ {
-			s.possibleValues[i][j] = s.sudoku.possibleValuesForCell(i, j)
+			s.possibleValues[i][j] = s.sudoku.PossibleValuesForCell(i, j)
 		}
 	}
 }

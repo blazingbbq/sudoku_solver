@@ -19,6 +19,10 @@ func (s *Sudoku) GetBoard() [9][9]int {
 	return s.board
 }
 
+func (s *Sudoku) GetCell(row, col int) int {
+	return s.board[row][col]
+}
+
 func (s *Sudoku) SetCell(row, col, value int) {
 	s.board[row][col] = value
 }
@@ -142,7 +146,7 @@ func (s *Sudoku) isSolved() bool {
 	return true
 }
 
-func (s *Sudoku) possibleValuesForCell(row, col int) []int {
+func (s *Sudoku) PossibleValuesForCell(row, col int) []int {
 	if s.board[row][col] != 0 {
 		return nil
 	}
