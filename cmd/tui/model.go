@@ -16,6 +16,7 @@ type model struct {
 	cursorY int
 	showSidePanel bool
 
+	hintMode           bool
 	puzzleCreationMode bool
 	puzzleVals         [9][9]int
 
@@ -73,8 +74,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "tab":
 			m.showSidePanel = !m.showSidePanel
+		case "h", " ":
+			m.hintMode = !m.hintMode
 
-		case "c":
+		case "c", "i":
 			m.puzzleCreationMode = !m.puzzleCreationMode
 
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
@@ -86,7 +89,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				shouldSetCell = true
 			} else if m.puzzleVals[m.cursorY][m.cursorX] == 0 {
 				shouldSetCell = true
-			} 
+			}
 			if shouldSetCell {
 				m.sudoku.SetCell(m.cursorY, m.cursorX, val)
 			}
@@ -95,7 +98,19 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.puzzleVals[m.cursorY][m.cursorX] = val
 			}
 		case "backspace", "delete", "0":
-			m.sudoku.SetCell(m.cursorY, m.cursorX, 0)
+			shouldSetCell := false
+			if m.puzzleCreationMode {
+				shouldSetCell = true
+			} else if m.puzzleVals[m.cursorY][m.cursorX] == 0 {
+				shouldSetCell = true
+			}
+			if shouldSetCell {
+				m.sudoku.SetCell(m.cursorY, m.cursorX, 0)
+			}
+
+			if m.puzzleCreationMode {
+				m.puzzleVals[m.cursorY][m.cursorX] = 0
+			}
 		}
 	}
 	m.sanitizeCursorPos()
@@ -114,17 +129,27 @@ func (m *model) View() string {
 	board := m.sudoku.GetBoard()
 	for i := range board {
 		for j := range board[i] {
+			cellStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("F"))
+
 			cell := fmt.Sprintf("%d", board[i][j])
 			if board[i][j] == 0 {
 				cell = " " // Empty cells are represented with 0. Render them as spaces
+
+				if m.hintMode {
+					// Display cells with a single possible value as a hint
+					possibleValues := m.sudoku.PossibleValuesForCell(i, j)
+					if len(possibleValues) == 1 {
+						cell = "*"
+						cellStyle = cellStyle.Foreground(lipgloss.Color("#FFFF00"))
+					}
+				}
 			}
 
 			isCellSelected := i == m.cursorY && j == m.cursorX
 			isCellValid := m.sudoku.IsCellValid(i, j)
 			isPuzzleProvided := m.puzzleVals[i][j] != 0
 
-			cellStyle := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("F"))
 			if isCellSelected {
 				if isCellValid || isPuzzleProvided {
 					// Highlight the cell the cursor is on
@@ -200,7 +225,7 @@ func (m *model) View() string {
 			),
 			puzzleCreationPrompt,
 		)
-	helpText := helpStyle("  ←/↑/↓/→: Navigate • c: Puzzle creation • q: Quit")
+	helpText := helpStyle("  ←/↑/↓/→: Navigate • c: Puzzle entry • q: Quit")
 
 	// Send the UI for rendering
 	return title + "\n" + centerPanel + "\n" + helpText + "\n"
