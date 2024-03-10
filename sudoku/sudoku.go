@@ -147,19 +147,22 @@ func (s *Sudoku) isSolved() bool {
 }
 
 func (s *Sudoku) PossibleValuesForCell(row, col int) []int {
-	if s.board[row][col] != 0 {
-		return nil
-	}
-
 	seen := make(map[int]bool)
 	for i := 0; i < _gridSize; i++ {
-		seen[s.board[row][i]] = true
-		seen[s.board[i][col]] = true
+		if i != col {
+			seen[s.board[row][i]] = true
+		}
+		if i != row {
+			seen[s.board[i][col]] = true
+		}
 	}
 
 	startRow, startCol := row-row%3, col-col%3
 	for i := startRow; i < startRow+3; i++ {
 		for j := startCol; j < startCol+3; j++ {
+			if i == row && j == col {
+				continue
+			}
 			seen[s.board[i][j]] = true
 		}
 	}
