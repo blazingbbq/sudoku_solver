@@ -19,6 +19,10 @@ func (s *Sudoku) GetBoard() [9][9]int {
 	return s.board
 }
 
+func (s *Sudoku) IsCellEmpty(row, col int) bool {
+	return s.GetCell(row, col) == 0
+}
+
 func (s *Sudoku) GetCell(row, col int) int {
 	return s.board[row][col]
 }
@@ -171,6 +175,18 @@ func (s *Sudoku) PossibleValuesForCell(row, col int) []int {
 	for i := 1; i <= _gridSize; i++ {
 		if !seen[i] {
 			result = append(result, i)
+		}
+	}
+	return result
+}
+
+func (s *Sudoku) PossibleValuesForAllCells() [_gridSize][_gridSize][]int {
+	var result [_gridSize][_gridSize][]int
+	for i := 0; i < _gridSize; i++ {
+		for j := 0; j < _gridSize; j++ {
+			if s.board[i][j] == 0 {
+				result[i][j] = s.PossibleValuesForCell(i, j)
+			}
 		}
 	}
 	return result

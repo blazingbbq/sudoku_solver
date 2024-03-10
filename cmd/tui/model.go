@@ -127,19 +127,20 @@ func (m *model) View() string {
 	// Render the gameboard
 	gameboard := ""
 	board := m.sudoku.GetBoard()
+	solver := sudoku.NewSolver(m.sudoku) // TODO: This should be a field in the model
 	for i := range board {
 		for j := range board[i] {
 			cellStyle := lipgloss.NewStyle().
 				Foreground(lipgloss.Color("F"))
 
 			cell := fmt.Sprintf("%d", board[i][j])
-			if board[i][j] == 0 {
+			if m.sudoku.IsCellEmpty(i, j) {
 				cell = " " // Empty cells are represented with 0. Render them as spaces
 
 				if m.hintMode {
 					// Display cells with a single possible value as a hint
-					possibleValues := m.sudoku.PossibleValuesForCell(i, j)
-					if len(possibleValues) == 1 {
+					_, ok := solver.CellMustBe(i, j)
+					if ok {
 						cell = "*"
 						cellStyle = cellStyle.Foreground(lipgloss.Color("#FFFF00"))
 					}
@@ -206,6 +207,14 @@ func (m *model) View() string {
 		}
 		hintModeIndicator = helpStyle(hintModeIndicator)
 
+		mustBeIndicator := ""
+		if m.hintMode {
+			mustBe, ok := solver.CellMustBe(m.cursorY, m.cursorX)
+			if ok {
+				mustBeIndicator = helpStyle(fmt.Sprintf("-> %d", mustBe))
+			}
+		}
+
 		// Render panel with side border and padding
 		sidePanel = lipgloss.NewStyle().
 			Border(lipgloss.DoubleBorder(), false, false, false, true). // Left border
@@ -215,6 +224,7 @@ func (m *model) View() string {
 			Render(lipgloss.JoinVertical(lipgloss.Left,
 				cursorPosIndicator,
 				possibleValuesIndicator,
+				mustBeIndicator,
 				"",
 				"",
 				hintModeIndicator,

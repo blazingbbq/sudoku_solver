@@ -2,29 +2,18 @@ package sudoku
 
 import (
 	"errors"
-	"fmt"
 )
 
 type Solver struct {
 	sudoku *Sudoku
 
-	// List of possible values for each cell, where an empty means the cell is
-	// already solved
-	possibleValues [_gridSize][_gridSize][]int
+	possibleValues [9][9][]int
 }
 
 func NewSolver(sudoku *Sudoku) *Solver {
 	s := &Solver{sudoku: sudoku}
-	s.initPossibleValues()
+	s.resetPossibleValues()
 	return s
-}
-
-func (s *Solver) initPossibleValues() {
-	for i := 0; i < _gridSize; i++ {
-		for j := 0; j < _gridSize; j++ {
-			s.possibleValues[i][j] = s.sudoku.PossibleValuesForCell(i, j)
-		}
-	}
 }
 
 func (s *Solver) Solve() (*Sudoku, error) {
@@ -47,65 +36,128 @@ func (s *Solver) Solve() (*Sudoku, error) {
 }
 
 func (s *Solver) solveNextCell() error {
-	s.initPossibleValues() // TODO: optimize this (only update affected cells)
+	s.resetPossibleValues()
 
-	// Find the cell with the fewest possible values
-	minI, minJ := -1, -1
-	minLen := _gridSize + 1
+	// Solve the next cell that has only one possible value
 	for i := 0; i < _gridSize; i++ {
 		for j := 0; j < _gridSize; j++ {
 			if s.sudoku.board[i][j] != 0 {
 				continue
 			}
 
-			numPossibleValues := len(s.possibleValues[i][j])
-			if numPossibleValues != 0 && numPossibleValues < minLen {
-				minI, minJ = i, j
-				minLen = len(s.possibleValues[i][j])
+			mustBe, ok := s.CellMustBe(i, j)
+			if !ok {
+				continue
 			}
+			s.sudoku.SetCell(i, j, mustBe)
+			return nil
 		}
 	}
-
-	// Check that there are empty cells left
-	if minI == -1 {
-		return errors.New("no empty cell with possible values found")
-	}
-
-	// Ensure that the cell with the least possible values only has one possible
-	// value
-	if minLen > 1 {
-		return errors.New("no unique solution found")
-	}
-
-	// Solve the cell
-	s.sudoku.board[minI][minJ] = s.possibleValues[minI][minJ][0]
-	return nil
+	return errors.New("No cells with only one possible value found")
 }
 
-func (s *Solver) FormatCellsWithSinglePossibleValue() string {
-	var result string
+func (s *Solver) resetPossibleValues() {
+	s.possibleValues = s.sudoku.PossibleValuesForAllCells()
+}
+
+func (s *Solver) cellHasOnePossibleValue(row, col int) bool {
+	return len(s.possibleValues[row][col]) == 1
+}
+
+func (s *Solver) cellMustBeInRow(row, col int) (int, bool) {
+	mustBe := []int{}
+	otherCellsInRowCanBe := make(map[int]bool)
 	for i := 0; i < _gridSize; i++ {
-		for j := 0; j < _gridSize; j++ {
-			if s.sudoku.board[i][j] != 0 {
-				result += fmt.Sprintf("%d", s.sudoku.board[i][j])
-			} else {
-				if len(s.possibleValues[i][j]) == 1 {
-					result += "*"
-				} else {
-					result += " "
-				}
-			}
-
-			if j%3 == 2 && j != _gridSize-1 {
-				result += " | "
-			} else {
-				result += " "
-			}
+		if i == col {
+			continue
 		}
-		result += "\n"
-		if i%3 == 2 && i != _gridSize-1 {
-			result += "---------------------\n"
+		if !s.sudoku.IsCellEmpty(row, i) {
+			continue
+		}
+		for _, value := range s.possibleValues[row][i] {
+			otherCellsInRowCanBe[value] = true
 		}
 	}
-	return result
+	for _, value := range s.possibleValues[row][col] {
+		if !otherCellsInRowCanBe[value] {
+			mustBe = append(mustBe, value)
+		}
+	}
+	if len(mustBe) == 1 {
+		return mustBe[0], true
+	}
+	return 0, false
 }
+
+func (s *Solver) cellMustBeInColumn(row, col int) (int, bool) {
+	mustBe := []int{}
+	otherCellsInColumnCanBe := make(map[int]bool)
+	for i := 0; i < _gridSize; i++ {
+		if i == row {
+			continue
+		}
+		if !s.sudoku.IsCellEmpty(i, col) {
+			continue
+		}
+		for _, value := range s.possibleValues[i][col] {
+			otherCellsInColumnCanBe[value] = true
+		}
+	}
+	for _, value := range s.possibleValues[row][col] {
+		if !otherCellsInColumnCanBe[value] {
+			mustBe = append(mustBe, value)
+		}
+	}
+	if len(mustBe) == 1 {
+		return mustBe[0], true
+	}
+	return 0, false
+}
+
+func (s *Solver) cellMustBeInSquare(row, col int) (int, bool) {
+	mustBe := []int{}
+	otherCellsInSquareCanBe := make(map[int]bool)
+	startRow, startCol := row-row%3, col-col%3
+	for i := startRow; i < startRow+3; i++ {
+		for j := startCol; j < startCol+3; j++ {
+			if i == row && j == col {
+				continue
+			}
+			if !s.sudoku.IsCellEmpty(i, j) {
+				continue
+			}
+			for _, value := range s.possibleValues[i][j] {
+				otherCellsInSquareCanBe[value] = true
+			}
+		}
+	}
+	for _, value := range s.possibleValues[row][col] {
+		if !otherCellsInSquareCanBe[value] {
+			mustBe = append(mustBe, value)
+		}
+	}
+	if len(mustBe) == 1 {
+		return mustBe[0], true
+	}
+	return 0, false
+}
+
+func (s *Solver) CellMustBe(row, col int) (int, bool) {
+	s.resetPossibleValues()
+
+	if s.cellHasOnePossibleValue(row, col) {
+		return s.possibleValues[row][col][0], true
+	}
+
+	if mustBe, ok := s.cellMustBeInRow(row, col); ok {
+		return mustBe, true
+	}
+	if mustBe, ok := s.cellMustBeInColumn(row, col); ok {
+		return mustBe, true
+	}
+	if mustBe, ok := s.cellMustBeInSquare(row, col); ok {
+		return mustBe, true
+	}
+
+	return 0, false
+}	
