@@ -184,19 +184,27 @@ func (m *model) View() string {
 	// Render the side panel
 	sidePanel := ""
 	if m.showSidePanel {
-		sidePanel += fmt.Sprintf("Cell (%d, %d)\n", m.cursorX, m.cursorY)
+		cursorPosIndicator := fmt.Sprintf("Cell (%d, %d)", m.cursorX, m.cursorY)
 
 		// Possible values for the selected cell
 		possibleValues := m.sudoku.PossibleValuesForCell(m.cursorY, m.cursorX)
-		vals := "[ "
+		possibleValuesIndicator := "[ "
 		for i, v := range possibleValues {
 			if i > 0 {
-				vals += ", "
+				possibleValuesIndicator += ", "
 			}
-			vals += fmt.Sprintf("%d", v)
+			possibleValuesIndicator += fmt.Sprintf("%d", v)
 		}
-		vals += " ]"
-		sidePanel += vals
+		possibleValuesIndicator += " ]"
+
+		// Hint mode indicator
+		hintModeIndicator := "Hint mode: "
+		if m.hintMode {
+			hintModeIndicator += "ON"
+		} else {
+			hintModeIndicator += "OFF"
+		}
+		hintModeIndicator = helpStyle(hintModeIndicator)
 
 		// Render panel with side border and padding
 		sidePanel = lipgloss.NewStyle().
@@ -204,7 +212,13 @@ func (m *model) View() string {
 			BorderForeground(lipgloss.Color("#AAAAAA")).
 			MarginLeft(4).
 			Padding(1, 3).
-			Render("\n" + sidePanel + "\n")
+			Render(lipgloss.JoinVertical(lipgloss.Left,
+				cursorPosIndicator,
+				possibleValuesIndicator,
+				"",
+				"",
+				hintModeIndicator,
+			))
 	}
 
 	puzzleCreationPrompt := ""
