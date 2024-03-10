@@ -12,15 +12,15 @@ import (
 var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
 
 type model struct {
-	cursorX int
-	cursorY int
+	cursorX       int
+	cursorY       int
 	showSidePanel bool
 
 	hintMode           bool
 	puzzleCreationMode bool
 	puzzleVals         [9][9]int
 
-	sudoku  *sudoku.Sudoku
+	sudoku *sudoku.Sudoku
 }
 
 var _ tea.Model = &model{}
@@ -167,7 +167,7 @@ func (m *model) View() string {
 			}
 			gameboard += cellStyle.Render(cell)
 
-			if j % 3 == 2 && j != 8 {
+			if j%3 == 2 && j != 8 {
 				gameboard += " │ "
 			} else if j != 8 {
 				gameboard += " "
@@ -176,7 +176,7 @@ func (m *model) View() string {
 		if i < 8 {
 			gameboard += "\n"
 		}
-		if i % 3 == 2 && i != 8 {
+		if i%3 == 2 && i != 8 {
 			gameboard += "──────┼───────┼──────\n"
 		}
 	}

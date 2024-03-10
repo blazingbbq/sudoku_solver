@@ -96,17 +96,16 @@ func (s *Solver) FormatCellsWithSinglePossibleValue() string {
 				}
 			}
 
-			if j % 3 == 2 && j != _gridSize - 1 {
+			if j%3 == 2 && j != _gridSize-1 {
 				result += " | "
 			} else {
 				result += " "
 			}
 		}
 		result += "\n"
-		if i % 3 == 2 && i != _gridSize - 1 {
+		if i%3 == 2 && i != _gridSize-1 {
 			result += "---------------------\n"
 		}
 	}
 	return result
 }
-

@@ -58,7 +58,7 @@ func TestSolver(t *testing.T) {
 					{0, 0, 0, 0, 0, 0, 0, 0, 9},
 				},
 			},
-			expected: nil,
+			expected:  nil,
 			expectErr: true,
 		},
 		{
@@ -76,7 +76,7 @@ func TestSolver(t *testing.T) {
 					{3, 4, 5, 2, 8, 6, 1, 7, 9},
 				},
 			},
-			expected: nil,
+			expected:  nil,
 			expectErr: true,
 		},
 		{

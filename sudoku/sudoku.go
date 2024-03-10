@@ -69,14 +69,14 @@ func (s *Sudoku) String() string {
 				result += fmt.Sprintf("%d", s.board[i][j])
 			}
 
-			if j % 3 == 2 && j != _gridSize - 1 {
+			if j%3 == 2 && j != _gridSize-1 {
 				result += " | "
 			} else {
 				result += " "
 			}
 		}
 		result += "\n"
-		if i % 3 == 2 && i != _gridSize - 1 {
+		if i%3 == 2 && i != _gridSize-1 {
 			result += "---------------------\n"
 		}
 	}
@@ -96,7 +96,7 @@ func (s *Sudoku) IsCellValid(x, y int) bool {
 	if s.board[x][y] == 0 {
 		return true
 	}
-	
+
 	// Check row
 	for i := 0; i < _gridSize; i++ {
 		if i != x && s.board[i][y] == s.board[x][y] {
@@ -112,9 +112,9 @@ func (s *Sudoku) IsCellValid(x, y int) bool {
 	}
 
 	// Check 3x3 square
-	startRow, startCol := x - x % 3, y - y % 3
-	for i := startRow; i < startRow + 3; i++ {
-		for j := startCol; j < startCol + 3; j++ {
+	startRow, startCol := x-x%3, y-y%3
+	for i := startRow; i < startRow+3; i++ {
+		for j := startCol; j < startCol+3; j++ {
 			if i != x && j != y && s.board[i][j] == s.board[x][y] {
 				return false
 			}
@@ -157,9 +157,9 @@ func (s *Sudoku) PossibleValuesForCell(row, col int) []int {
 		seen[s.board[i][col]] = true
 	}
 
-	startRow, startCol := row - row % 3, col - col % 3
-	for i := startRow; i < startRow + 3; i++ {
-		for j := startCol; j < startCol + 3; j++ {
+	startRow, startCol := row-row%3, col-col%3
+	for i := startRow; i < startRow+3; i++ {
+		for j := startCol; j < startCol+3; j++ {
 			seen[s.board[i][j]] = true
 		}
 	}
