@@ -7,16 +7,21 @@ import (
 type cell struct {
 	rowIndex int
 	colIndex int
-	sqrIndex int
+	sqrRowIndex int
+	sqrColIndex int
 
-	value *int
-	row    []*cell
-	col    []*cell
-	square []*cell
-	region []*cell
+	value  *int
+	row    cellGroup
+	col    cellGroup
+	square cellGroup
+	region cellGroup
 
-	possibleValues []int
+	possibleValues cellGroupValues
 }
+
+type cellGroup []*cell
+
+type cellGroupValues []int
 
 type grid [9][9]cell
 
@@ -72,32 +77,6 @@ func (s *Solver) solveNextCell() error {
 	return errors.New("No cells with only one possible value found")
 }
 
-func (s *Solver) newCell(row, col int) cell {
-	c := cell{
-		rowIndex:       row,
-		colIndex:       col,
-		sqrIndex:       col/3 + (row/3)*3,
-		possibleValues: s.sudoku.PossibleValuesForCell(row, col),
-	}
-
-	for i := 0; i < 9; i++ {
-		if i != row {
-			c.row = append(c.row, &s.grid[i][col])
-		}
-		if i != col {
-			c.col = append(c.col, &s.grid[row][i])
-		}
-		if i != row && i != col {
-			c.square = append(c.square, &s.grid[i/3+row/3*3][i%3+col/3*3])
-		}
-	}
-	c.region = append(c.region, c.row...)
-	c.region = append(c.region, c.col...)
-	c.region = append(c.region, c.square...)
-
-	return c
-}
-
 func (s *Solver) newGrid() {
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
@@ -106,104 +85,121 @@ func (s *Solver) newGrid() {
 	}
 }
 
-func (s *Solver) cellHasOnePossibleValue(row, col int) bool {
-	return len(s.grid[row][col].possibleValues) == 1
+func (s *Solver) newCell(row, col int) cell {
+	c := cell{
+		value:          ptr(s.sudoku.GetCell(row, col)),
+		rowIndex:       row,
+		colIndex:       col,
+		sqrRowIndex:    row/3,
+		sqrColIndex:    col/3,
+		possibleValues: s.sudoku.PossibleValuesForCell(row, col),
+	}
+
+	for i := 0; i < 9; i++ {
+		if i != col {
+			c.row = append(c.row, &s.grid[row][i])
+		}
+		if i != row {
+			c.col = append(c.col, &s.grid[i][col])
+		}
+		if i != (row%3)*3 + col%3 {
+			c.square = append(c.square, &s.grid[c.sqrRowIndex*3 + i/3][c.sqrColIndex*3 + i%3])
+		}
+	}
+
+	c.region = append(c.region, c.row...)
+	c.region = append(c.region, c.col...)
+	c.region = append(c.region, c.square...)
+
+	return c
 }
 
-func (s *Solver) cellMustBeInRow(row, col int) (int, bool) {
-	mustBe := []int{}
-	otherCellsInRowCanBe := make(map[int]bool)
-	for i := 0; i < _gridSize; i++ {
-		if i == col {
-			continue
-		}
-		if !s.sudoku.IsCellEmpty(row, i) {
-			continue
-		}
-		for _, value := range s.grid[row][i].possibleValues {
-			otherCellsInRowCanBe[value] = true
-		}
+func (c *cell) getValue() (int, bool) {
+	if c.value == nil {
+		return 0, false
 	}
-	for _, value := range s.grid[row][col].possibleValues {
-		if !otherCellsInRowCanBe[value] {
-			mustBe = append(mustBe, value)
-		}
-	}
-	if len(mustBe) == 1 {
-		return mustBe[0], true
-	}
-	return 0, false
+	return *c.value, *c.value != 0
 }
 
-func (s *Solver) cellMustBeInColumn(row, col int) (int, bool) {
-	mustBe := []int{}
-	otherCellsInColumnCanBe := make(map[int]bool)
-	for i := 0; i < _gridSize; i++ {
-		if i == row {
-			continue
-		}
-		if !s.sudoku.IsCellEmpty(i, col) {
-			continue
-		}
-		for _, value := range s.grid[i][col].possibleValues {
-			otherCellsInColumnCanBe[value] = true
-		}
+func (c *cell) singleValue() (int, bool) {
+	// If the cell has only one candidate, return it
+	if len(c.possibleValues) == 1 {
+		return c.possibleValues[0], true
 	}
-	for _, value := range s.grid[row][col].possibleValues {
-		if !otherCellsInColumnCanBe[value] {
-			mustBe = append(mustBe, value)
-		}
-	}
-	if len(mustBe) == 1 {
-		return mustBe[0], true
-	}
-	return 0, false
-}
 
-func (s *Solver) cellMustBeInSquare(row, col int) (int, bool) {
-	mustBe := []int{}
-	otherCellsInSquareCanBe := make(map[int]bool)
-	startRow, startCol := row-row%3, col-col%3
-	for i := startRow; i < startRow+3; i++ {
-		for j := startCol; j < startCol+3; j++ {
-			if i == row && j == col {
-				continue
-			}
-			if !s.sudoku.IsCellEmpty(i, j) {
-				continue
-			}
-			for _, value := range s.grid[i][j].possibleValues {
-				otherCellsInSquareCanBe[value] = true
-			}
-		}
+	// If a candidate is only present in one axis of the region, return it
+	if vals := c.possibleValues.subtract(c.row.knownAndPossibleValues()); len(vals) == 1 {
+		return vals[0], true
 	}
-	for _, value := range s.grid[row][col].possibleValues {
-		if !otherCellsInSquareCanBe[value] {
-			mustBe = append(mustBe, value)
-		}
+	if vals := c.possibleValues.subtract(c.col.knownAndPossibleValues()); len(vals) == 1 {
+		return vals[0], true
 	}
-	if len(mustBe) == 1 {
-		return mustBe[0], true
+	if vals := c.possibleValues.subtract(c.square.knownAndPossibleValues()); len(vals) == 1 {
+		return vals[0], true
 	}
+
 	return 0, false
 }
 
 func (s *Solver) CellMustBe(row, col int) (int, bool) {
 	s.newGrid()
 
-	if s.cellHasOnePossibleValue(row, col) {
-		return s.grid[row][col].possibleValues[0], true
-	}
+	return s.grid[row][col].singleValue()
+}
 
-	if mustBe, ok := s.cellMustBeInRow(row, col); ok {
-		return mustBe, true
-	}
-	if mustBe, ok := s.cellMustBeInColumn(row, col); ok {
-		return mustBe, true
-	}
-	if mustBe, ok := s.cellMustBeInSquare(row, col); ok {
-		return mustBe, true
-	}
+// append returns a new cellGroupValues with value appended
+func (cgv cellGroupValues) append(value ...int) cellGroupValues {
+	return append(cgv, value...)
+}
 
-	return 0, false
+// contains returns true if value is in cgv
+func (cgv cellGroupValues) contains(value int) bool {
+	for _, v := range cgv {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
+// subtract returns the values in cgv that are not in sub
+func (cgv cellGroupValues) subtract(sub cellGroupValues) cellGroupValues {
+	result := cellGroupValues{}
+	for _, v := range cgv {
+		if !sub.contains(v) {
+			result = result.append(v)
+		}
+	}
+	return result
+}
+
+// knownValues returns the known values of cells in the group
+func (cg cellGroup) knownValues() cellGroupValues {
+	values := cellGroupValues{}
+	for _, c := range cg {
+		if val, ok := c.getValue(); ok {
+			values = values.append(val)
+		}
+	}
+	return values
+}
+
+// possibleValues returns the possible values of cells in the group
+func (cg cellGroup) possibleValues() cellGroupValues {
+	values := cellGroupValues{}
+	for _, c := range cg {
+		if _, ok := c.getValue(); !ok {
+			values = values.append(c.possibleValues...)
+		}
+	}
+	return values
+}
+
+// knownAndPossibleValues returns the known and possible values of cells in the group
+func (cg cellGroup) knownAndPossibleValues() cellGroupValues {
+	return cg.knownValues().append(cg.possibleValues()...)
+}
+
+func ptr[K any](val K) *K {
+    return &val
 }

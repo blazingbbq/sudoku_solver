@@ -210,7 +210,7 @@ func (m *model) View() string {
 		mustBeIndicator := ""
 		if m.hintMode {
 			mustBe, ok := solver.CellMustBe(m.cursorY, m.cursorX)
-			if ok {
+			if ok && m.sudoku.IsCellEmpty(m.cursorY, m.cursorX) {
 				mustBeIndicator = helpStyle(fmt.Sprintf("-> %d", mustBe))
 			}
 		}
