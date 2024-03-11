@@ -5,9 +5,15 @@ import (
 )
 
 type cell struct {
-	row int
-	col int
-	sqr int
+	rowIndex int
+	colIndex int
+	sqrIndex int
+
+	value *int
+	row    []*cell
+	col    []*cell
+	square []*cell
+	region []*cell
 
 	possibleValues []int
 }
@@ -17,12 +23,12 @@ type grid [9][9]cell
 type Solver struct {
 	sudoku *Sudoku
 
-	grid [9][9]cell
+	grid grid
 }
 
 func NewSolver(sudoku *Sudoku) *Solver {
 	s := &Solver{sudoku: sudoku}
-	s.resetPossibleValues()
+	s.newGrid()
 	return s
 }
 
@@ -46,7 +52,7 @@ func (s *Solver) Solve() (*Sudoku, error) {
 }
 
 func (s *Solver) solveNextCell() error {
-	s.resetPossibleValues()
+	s.newGrid()
 
 	// Solve the next cell that has only one possible value
 	for i := 0; i < _gridSize; i++ {
@@ -66,16 +72,36 @@ func (s *Solver) solveNextCell() error {
 	return errors.New("No cells with only one possible value found")
 }
 
-func (s *Solver) resetPossibleValues() {
-	possibleValues := s.sudoku.PossibleValuesForAllCells()
-	for i := 0; i < _gridSize; i++ {
-		for j := 0; j < _gridSize; j++ {
-			s.grid[i][j] = cell{
-				row:            i,
-				col:            j,
-				sqr:            j/3 + (i/3)*3,
-				possibleValues: possibleValues[i][j],
-			}
+func (s *Solver) newCell(row, col int) cell {
+	c := cell{
+		rowIndex:       row,
+		colIndex:       col,
+		sqrIndex:       col/3 + (row/3)*3,
+		possibleValues: s.sudoku.PossibleValuesForCell(row, col),
+	}
+
+	for i := 0; i < 9; i++ {
+		if i != row {
+			c.row = append(c.row, &s.grid[i][col])
+		}
+		if i != col {
+			c.col = append(c.col, &s.grid[row][i])
+		}
+		if i != row && i != col {
+			c.square = append(c.square, &s.grid[i/3+row/3*3][i%3+col/3*3])
+		}
+	}
+	c.region = append(c.region, c.row...)
+	c.region = append(c.region, c.col...)
+	c.region = append(c.region, c.square...)
+
+	return c
+}
+
+func (s *Solver) newGrid() {
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			s.grid[i][j] = s.newCell(i, j)
 		}
 	}
 }
@@ -163,7 +189,7 @@ func (s *Solver) cellMustBeInSquare(row, col int) (int, bool) {
 }
 
 func (s *Solver) CellMustBe(row, col int) (int, bool) {
-	s.resetPossibleValues()
+	s.newGrid()
 
 	if s.cellHasOnePossibleValue(row, col) {
 		return s.grid[row][col].possibleValues[0], true
