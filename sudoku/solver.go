@@ -4,10 +4,20 @@ import (
 	"errors"
 )
 
+type cell struct {
+	row int
+	col int
+	sqr int
+
+	possibleValues []int
+}
+
+type grid [9][9]cell
+
 type Solver struct {
 	sudoku *Sudoku
 
-	possibleValues [9][9][]int
+	grid [9][9]cell
 }
 
 func NewSolver(sudoku *Sudoku) *Solver {
@@ -57,11 +67,21 @@ func (s *Solver) solveNextCell() error {
 }
 
 func (s *Solver) resetPossibleValues() {
-	s.possibleValues = s.sudoku.PossibleValuesForAllCells()
+	possibleValues := s.sudoku.PossibleValuesForAllCells()
+	for i := 0; i < _gridSize; i++ {
+		for j := 0; j < _gridSize; j++ {
+			s.grid[i][j] = cell{
+				row:            i,
+				col:            j,
+				sqr:            j/3 + (i/3)*3,
+				possibleValues: possibleValues[i][j],
+			}
+		}
+	}
 }
 
 func (s *Solver) cellHasOnePossibleValue(row, col int) bool {
-	return len(s.possibleValues[row][col]) == 1
+	return len(s.grid[row][col].possibleValues) == 1
 }
 
 func (s *Solver) cellMustBeInRow(row, col int) (int, bool) {
@@ -74,11 +94,11 @@ func (s *Solver) cellMustBeInRow(row, col int) (int, bool) {
 		if !s.sudoku.IsCellEmpty(row, i) {
 			continue
 		}
-		for _, value := range s.possibleValues[row][i] {
+		for _, value := range s.grid[row][i].possibleValues {
 			otherCellsInRowCanBe[value] = true
 		}
 	}
-	for _, value := range s.possibleValues[row][col] {
+	for _, value := range s.grid[row][col].possibleValues {
 		if !otherCellsInRowCanBe[value] {
 			mustBe = append(mustBe, value)
 		}
@@ -99,11 +119,11 @@ func (s *Solver) cellMustBeInColumn(row, col int) (int, bool) {
 		if !s.sudoku.IsCellEmpty(i, col) {
 			continue
 		}
-		for _, value := range s.possibleValues[i][col] {
+		for _, value := range s.grid[i][col].possibleValues {
 			otherCellsInColumnCanBe[value] = true
 		}
 	}
-	for _, value := range s.possibleValues[row][col] {
+	for _, value := range s.grid[row][col].possibleValues {
 		if !otherCellsInColumnCanBe[value] {
 			mustBe = append(mustBe, value)
 		}
@@ -126,12 +146,12 @@ func (s *Solver) cellMustBeInSquare(row, col int) (int, bool) {
 			if !s.sudoku.IsCellEmpty(i, j) {
 				continue
 			}
-			for _, value := range s.possibleValues[i][j] {
+			for _, value := range s.grid[i][j].possibleValues {
 				otherCellsInSquareCanBe[value] = true
 			}
 		}
 	}
-	for _, value := range s.possibleValues[row][col] {
+	for _, value := range s.grid[row][col].possibleValues {
 		if !otherCellsInSquareCanBe[value] {
 			mustBe = append(mustBe, value)
 		}
@@ -146,7 +166,7 @@ func (s *Solver) CellMustBe(row, col int) (int, bool) {
 	s.resetPossibleValues()
 
 	if s.cellHasOnePossibleValue(row, col) {
-		return s.possibleValues[row][col][0], true
+		return s.grid[row][col].possibleValues[0], true
 	}
 
 	if mustBe, ok := s.cellMustBeInRow(row, col); ok {
@@ -160,4 +180,4 @@ func (s *Solver) CellMustBe(row, col int) (int, bool) {
 	}
 
 	return 0, false
-}	
+}
