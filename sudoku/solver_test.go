@@ -136,14 +136,14 @@ func TestCell(t *testing.T) {
 		{
 			name: "single value - bad",
 			cell: &cell{
-				possibleValues: []int{1, 2, 3},
+				candidates: []int{1, 2, 3},
 			},
 			expectOk: false,
 		},
 		{
 			name: "single value - ok",
 			cell: &cell{
-				possibleValues: []int{1},
+				candidates: []int{1},
 			},
 			expectOk:    true,
 			expectedVal: 1,
@@ -151,18 +151,18 @@ func TestCell(t *testing.T) {
 		{
 			name: "single value - empty",
 			cell: &cell{
-				possibleValues: []int{},
+				candidates: []int{},
 			},
 			expectOk: false,
 		},
 		{
 			name: "single value - row",
 			cell: &cell{
-				possibleValues: []int{1, 2, 3, 4},
+				candidates: []int{1, 2, 3, 4},
 				row: cellGroup{
 					&cell{value: ptr(1)},
 					&cell{value: ptr(2)},
-					&cell{possibleValues: []int{4}},
+					&cell{candidates: []int{4}},
 				},
 			},
 			expectOk:    true,
@@ -171,11 +171,11 @@ func TestCell(t *testing.T) {
 		{
 			name: "single value - col",
 			cell: &cell{
-				possibleValues: []int{1, 2, 3, 4},
+				candidates: []int{1, 2, 3, 4},
 				col: cellGroup{
 					&cell{value: ptr(1)},
 					&cell{value: ptr(2)},
-					&cell{possibleValues: []int{4}},
+					&cell{candidates: []int{4}},
 				},
 			},
 			expectOk:    true,
@@ -184,11 +184,11 @@ func TestCell(t *testing.T) {
 		{
 			name: "single value - square",
 			cell: &cell{
-				possibleValues: []int{1, 2, 3, 4},
+				candidates: []int{1, 2, 3, 4},
 				square: cellGroup{
 					&cell{value: ptr(1)},
 					&cell{value: ptr(2)},
-					&cell{possibleValues: []int{4}},
+					&cell{candidates: []int{4}},
 				},
 			},
 			expectOk:    true,

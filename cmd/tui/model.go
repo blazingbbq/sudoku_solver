@@ -188,7 +188,7 @@ func (m *model) View() string {
 		cursorPosIndicator := fmt.Sprintf("Cell (%d, %d)", m.cursorX, m.cursorY)
 
 		// Possible values for the selected cell
-		possibleValues := m.sudoku.PossibleValuesForCell(m.cursorY, m.cursorX)
+		possibleValues := m.sudoku.CandidatesForCell(m.cursorY, m.cursorX)
 		possibleValuesIndicator := "[ "
 		for i, v := range possibleValues {
 			if i > 0 {
