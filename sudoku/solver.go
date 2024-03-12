@@ -30,6 +30,7 @@ type Solver struct {
 func NewSolver(sudoku *Sudoku) *Solver {
 	s := &Solver{sudoku: sudoku}
 	s.newGrid()
+	s.updateCandidates()
 	return s
 }
 
@@ -52,8 +53,14 @@ func (s *Solver) Solve() (*Sudoku, error) {
 	}
 }
 
-func (s *Solver) solveNextCell() error {
+func (s *Solver) CellMustBe(row, col int) (int, bool) {
 	s.newGrid()
+	s.updateCandidates()
+	return s.grid[row][col].singleValue()
+}
+
+func (s *Solver) solveNextCell() error {
+	s.updateCandidates()
 
 	// Solve the next cell that has only one candidate
 	for i := 0; i < _gridSize; i++ {
@@ -88,7 +95,7 @@ func (s *Solver) newCell(row, col int) cell {
 		colIndex:    col,
 		sqrRowIndex: row / 3,
 		sqrColIndex: col / 3,
-		candidates:  s.sudoku.CandidatesForCell(row, col),
+		candidates:  s.sanitizedCandidatesForCell(row, col),
 	}
 
 	for i := 0; i < 9; i++ {
@@ -110,6 +117,34 @@ func (s *Solver) newCell(row, col int) cell {
 	return c
 }
 
+func (s *Solver) sanitizedCandidatesForCell(row, col int) cellGroupValues {
+	if _, ok := s.grid[row][col].getValue(); ok {
+		return cellGroupValues{}
+	}
+	return s.sudoku.CandidatesForCell(row, col)
+}
+
+func (s *Solver) updateCandidates() {
+	// Reset all possible candidates
+	s.grid.forEachCell(func(c *cell) {
+		c.candidates = s.sanitizedCandidatesForCell(c.rowIndex, c.colIndex)
+	})
+}
+
+func (g *grid) forEachCell(f func(c *cell)) {
+	for i := 0; i < 9; i++ {
+		for j := 0; j < 9; j++ {
+			f(&g[i][j])
+		}
+	}
+}
+
+func (c *cell) forEachRegion(f func(cellGroup)) {
+	f(c.row)
+	f(c.col)
+	f(c.square)
+}
+
 func (c *cell) getValue() (int, bool) {
 	if c.value == nil {
 		return 0, false
@@ -123,22 +158,13 @@ func (c *cell) singleValue() (int, bool) {
 		return c.candidates[0], true
 	}
 
-	// If a candidate is only present in one axis of the region, return it
-	if vals := c.candidates.subtract(c.row.knownAndCandidateValues()); len(vals) == 1 {
-		return vals[0], true
-	}
-	if vals := c.candidates.subtract(c.col.knownAndCandidateValues()); len(vals) == 1 {
-		return vals[0], true
-	}
-	if vals := c.candidates.subtract(c.square.knownAndCandidateValues()); len(vals) == 1 {
-		return vals[0], true
-	}
-
-	return 0, false
-}
-
-func (s *Solver) CellMustBe(row, col int) (int, bool) {
-	s.newGrid()
-
-	return s.grid[row][col].singleValue()
+	// If a candidate is only present in one region, return it
+	val, found := 0, false
+	c.forEachRegion(func(region cellGroup) {
+		if vals := c.candidates.subtract(region.knownAndCandidateValues()); len(vals) == 1 {
+			val = vals[0]
+			found = true
+		}
+	})
+	return val, found
 }
