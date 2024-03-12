@@ -180,8 +180,8 @@ func TestCell(t *testing.T) {
 			cell: &cell{
 				candidates: []int{1, 2, 3, 4},
 				row: cellGroup{
-					&cell{value: ptr(1)},
-					&cell{value: ptr(2)},
+					&cell{value: 1},
+					&cell{value: 2},
 					&cell{candidates: []int{4}},
 				},
 			},
@@ -193,8 +193,8 @@ func TestCell(t *testing.T) {
 			cell: &cell{
 				candidates: []int{1, 2, 3, 4},
 				col: cellGroup{
-					&cell{value: ptr(1)},
-					&cell{value: ptr(2)},
+					&cell{value: 1},
+					&cell{value: 2},
 					&cell{candidates: []int{4}},
 				},
 			},
@@ -206,8 +206,8 @@ func TestCell(t *testing.T) {
 			cell: &cell{
 				candidates: []int{1, 2, 3, 4},
 				square: cellGroup{
-					&cell{value: ptr(1)},
-					&cell{value: ptr(2)},
+					&cell{value: 1},
+					&cell{value: 2},
 					&cell{candidates: []int{4}},
 				},
 			},

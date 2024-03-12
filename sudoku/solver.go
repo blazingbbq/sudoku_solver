@@ -10,7 +10,7 @@ type cell struct {
 	sqrRowIndex int
 	sqrColIndex int
 
-	value  *int
+	value  int
 	row    cellGroup
 	col    cellGroup
 	square cellGroup
@@ -54,7 +54,6 @@ func (s *Solver) Solve() (*Sudoku, error) {
 }
 
 func (s *Solver) CellMustBe(row, col int) (int, bool) {
-	s.newGrid()
 	s.updateCandidates()
 	return s.grid[row][col].singleValue()
 }
@@ -95,12 +94,10 @@ func (s *Solver) newGrid() {
 
 func (s *Solver) newCell(row, col int) *cell {
 	return &cell{
-		value:       ptr(s.sudoku.GetCell(row, col)),
 		rowIndex:    row,
 		colIndex:    col,
 		sqrRowIndex: row / 3,
 		sqrColIndex: col / 3,
-		// Candidates can only be set after the grid is created
 	}
 }
 
@@ -132,8 +129,9 @@ func (s *Solver) sanitizedCandidatesForCell(row, col int) cellGroupValues {
 }
 
 func (s *Solver) updateCandidates() {
-	// Reset all possible candidates
+	// Reset all candidates and values
 	s.grid.forEachCell(func(c *cell) {
+		c.value = s.sudoku.GetCell(c.rowIndex, c.colIndex)
 		c.candidates = s.sanitizedCandidatesForCell(c.rowIndex, c.colIndex)
 	})
 }
@@ -153,10 +151,7 @@ func (c *cell) forEachRegion(f func(cellGroup)) {
 }
 
 func (c *cell) getValue() (int, bool) {
-	if c.value == nil {
-		return 0, false
-	}
-	return *c.value, *c.value != 0
+	return c.value, c.value != 0
 }
 
 func (c *cell) singleValue() (int, bool) {
