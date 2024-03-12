@@ -1,6 +1,5 @@
 package sudoku
 
-
 type cellGroup []*cell
 
 type cellGroupValues []int
