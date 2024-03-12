@@ -19,12 +19,12 @@ type cell struct {
 	candidates cellGroupValues
 }
 
-type grid [9][9]cell
+type grid [9][9]*cell
 
 type Solver struct {
 	sudoku *Sudoku
 
-	grid grid
+	grid *grid
 }
 
 func NewSolver(sudoku *Sudoku) *Solver {
@@ -81,40 +81,47 @@ func (s *Solver) solveNextCell() error {
 }
 
 func (s *Solver) newGrid() {
+	s.grid = &grid{}
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
 			s.grid[i][j] = s.newCell(i, j)
 		}
 	}
+
+	s.grid.forEachCell(func(c *cell) {
+		s.associateCell(c.rowIndex, c.colIndex)
+	})
 }
 
-func (s *Solver) newCell(row, col int) cell {
-	c := cell{
+func (s *Solver) newCell(row, col int) *cell {
+	return &cell{
 		value:       ptr(s.sudoku.GetCell(row, col)),
 		rowIndex:    row,
 		colIndex:    col,
 		sqrRowIndex: row / 3,
 		sqrColIndex: col / 3,
-		candidates:  s.sanitizedCandidatesForCell(row, col),
+		// Candidates can only be set after the grid is created
 	}
+}
+
+func (s *Solver) associateCell(row, col int) {
+	c := s.grid[row][col]
 
 	for i := 0; i < 9; i++ {
 		if i != col {
-			c.row = append(c.row, &s.grid[row][i])
+			c.row = append(c.row, s.grid[row][i])
 		}
 		if i != row {
-			c.col = append(c.col, &s.grid[i][col])
+			c.col = append(c.col, s.grid[i][col])
 		}
 		if i != (row%3)*3+col%3 {
-			c.square = append(c.square, &s.grid[c.sqrRowIndex*3+i/3][c.sqrColIndex*3+i%3])
+			c.square = append(c.square, s.grid[c.sqrRowIndex*3+i/3][c.sqrColIndex*3+i%3])
 		}
 	}
 
 	c.region = append(c.region, c.row...)
 	c.region = append(c.region, c.col...)
 	c.region = append(c.region, c.square...)
-
-	return c
 }
 
 func (s *Solver) sanitizedCandidatesForCell(row, col int) cellGroupValues {
@@ -134,7 +141,7 @@ func (s *Solver) updateCandidates() {
 func (g *grid) forEachCell(f func(c *cell)) {
 	for i := 0; i < 9; i++ {
 		for j := 0; j < 9; j++ {
-			f(&g[i][j])
+			f(g[i][j])
 		}
 	}
 }
