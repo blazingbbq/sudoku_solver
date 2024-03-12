@@ -134,6 +134,12 @@ func (s *Solver) updateCandidates() {
 		c.value = s.sudoku.GetCell(c.rowIndex, c.colIndex)
 		c.candidates = s.sanitizedCandidatesForCell(c.rowIndex, c.colIndex)
 	})
+
+	s.grid.forEachCell(func(c *cell) {
+		c.forEachRegion(func(r cellGroup) {
+			updateNakedPairs(c, r)
+		})
+	})
 }
 
 func (g *grid) forEachCell(f func(c *cell)) {

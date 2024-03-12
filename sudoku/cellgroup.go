@@ -5,7 +5,6 @@ type cellGroup []*cell
 
 type cellGroupValues []int
 
-
 // append returns a new cellGroupValues with value appended
 func (cgv cellGroupValues) append(value ...int) cellGroupValues {
 	return append(cgv, value...)
@@ -23,6 +22,10 @@ func (cgv cellGroupValues) contains(value int) bool {
 
 // subtract returns the values in cgv that are not in sub
 func (cgv cellGroupValues) subtract(sub cellGroupValues) cellGroupValues {
+	if cgv == nil {
+		return nil
+	}
+
 	result := cellGroupValues{}
 	for _, v := range cgv {
 		if !sub.contains(v) {
@@ -54,6 +57,11 @@ func (cgv cellGroupValues) count(value int) int {
 		}
 	}
 	return count
+}
+
+// length returns the number of values in cgv
+func (cgv cellGroupValues) length() int {
+	return len(cgv)
 }
 
 // transform returns a new cellGroupValues with the result of f for each value in cgv
