@@ -179,15 +179,3 @@ func (s *Sudoku) CandidatesForCell(row, col int) []int {
 	}
 	return result
 }
-
-func (s *Sudoku) CandidatesForAllCells() [_gridSize][_gridSize][]int {
-	var result [_gridSize][_gridSize][]int
-	for i := 0; i < _gridSize; i++ {
-		for j := 0; j < _gridSize; j++ {
-			if s.board[i][j] == 0 {
-				result[i][j] = s.CandidatesForCell(i, j)
-			}
-		}
-	}
-	return result
-}
