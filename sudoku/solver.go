@@ -47,7 +47,7 @@ func (s *Solver) Solve() (*Sudoku, error) {
 		}
 
 		// Attempt to solve the next cell
-		if err := s.solveNextCell(); err != nil {
+		if err := s.SolveNextCell(); err != nil {
 			return nil, err
 		}
 	}
@@ -58,7 +58,7 @@ func (s *Solver) CellMustBe(row, col int) (int, bool) {
 	return s.grid[row][col].singleValue()
 }
 
-func (s *Solver) solveNextCell() error {
+func (s *Solver) SolveNextCell() error {
 	s.updateCandidates()
 
 	// Solve the next cell that has only one candidate

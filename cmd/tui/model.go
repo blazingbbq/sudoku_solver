@@ -21,6 +21,7 @@ type model struct {
 	puzzleVals         [9][9]int
 
 	sudoku *sudoku.Sudoku
+	solver *sudoku.Solver
 }
 
 var _ tea.Model = &model{}
@@ -31,6 +32,7 @@ func newModel() *model {
 		cursorY: 0,
 		sudoku:  sudoku.NewSudoku(),
 	}
+	m.solver = sudoku.NewSolver(m.sudoku)
 
 	return m
 }
@@ -76,6 +78,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.showSidePanel = !m.showSidePanel
 		case "h", " ":
 			m.hintMode = !m.hintMode
+		case "n":
+			if m.hintMode {
+				_ = m.solver.SolveNextCell()
+			}
 
 		case "c", "i":
 			m.puzzleCreationMode = !m.puzzleCreationMode
@@ -127,7 +133,6 @@ func (m *model) View() string {
 	// Render the gameboard
 	gameboard := ""
 	board := m.sudoku.GetBoard()
-	solver := sudoku.NewSolver(m.sudoku) // TODO: This should be a field in the model
 	for i := range board {
 		for j := range board[i] {
 			cellStyle := lipgloss.NewStyle().
@@ -139,7 +144,7 @@ func (m *model) View() string {
 
 				if m.hintMode {
 					// Display cells with a single possible value as a hint
-					_, ok := solver.CellMustBe(i, j)
+					_, ok := m.solver.CellMustBe(i, j)
 					if ok {
 						cell = "*"
 						cellStyle = cellStyle.Foreground(lipgloss.Color("#FFFF00"))
@@ -209,7 +214,7 @@ func (m *model) View() string {
 
 		mustBeIndicator := ""
 		if m.hintMode {
-			mustBe, ok := solver.CellMustBe(m.cursorY, m.cursorX)
+			mustBe, ok := m.solver.CellMustBe(m.cursorY, m.cursorX)
 			if ok && m.sudoku.IsCellEmpty(m.cursorY, m.cursorX) {
 				mustBeIndicator = helpStyle(fmt.Sprintf("-> %d", mustBe))
 			}
@@ -249,7 +254,16 @@ func (m *model) View() string {
 			),
 			puzzleCreationPrompt,
 		)
-	helpText := helpStyle("  ←/↑/↓/→: Navigate • c: Puzzle entry • q: Quit")
+	
+	regularHelpText := "  ←/↑/↓/→: Navigate • c: Puzzle entry • q: Quit"
+	hintModeHelp := ""
+	if m.showSidePanel {
+		hintModeHelp = "  h: Toggle hint mode • n: Solve next cell"
+	}
+	helpText := helpStyle(lipgloss.JoinVertical(lipgloss.Left,
+		regularHelpText,
+		hintModeHelp,
+	))
 
 	// Send the UI for rendering
 	return title + "\n" + centerPanel + "\n" + helpText + "\n"
