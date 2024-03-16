@@ -169,6 +169,27 @@ func TestSolver(t *testing.T) {
 			},
 			expectErr: false,
 		},
+		{
+			name: "solveable - Medium 3",
+			sudoku: &Sudoku{
+				board: [9][9]int{
+					{8, 3, 2, 1, 0, 0, 4, 0, 0},
+					{7, 0, 0, 0, 0, 9, 2, 1, 0},
+					{1, 0, 0, 0, 4, 8, 0, 5, 0},
+					{0, 8, 0, 0, 0, 7, 0, 3, 1},
+					{6, 1, 0, 0, 0, 4, 0, 0, 0},
+					{2, 0, 0, 8, 0, 0, 0, 4, 0},
+					{0, 0, 9, 0, 0, 0, 0, 8, 5},
+					{0, 0, 0, 0, 0, 0, 0, 6, 0},
+					{0, 0, 0, 0, 0, 2, 3, 7, 0},
+				},
+			},
+			expected: &Sudoku{
+				board: [9][9]int{
+				},
+			},
+			expectErr: false,
+		},
 	}
 
 	for _, tt := range tests {
