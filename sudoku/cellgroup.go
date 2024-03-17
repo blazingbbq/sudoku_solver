@@ -47,6 +47,15 @@ func (cgv cellGroupValues) equals(other cellGroupValues) bool {
 	return true
 }
 
+func (cgv cellGroupValues) equalOrSubsetOf(other cellGroupValues) bool {
+	for _, v := range cgv {
+		if !other.contains(v) {
+			return false
+		}
+	}
+	return true
+}
+
 // count returns the number of times value appears in cgv
 func (cgv cellGroupValues) count(value int) int {
 	count := 0
