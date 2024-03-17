@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"sudoku/sudoku"
+	"sudoku/sudoku/solver"
 )
 
 func main() {
@@ -19,13 +20,14 @@ func main() {
 		lines = append(lines, text)
 	}
 
-	sudoku, err := sudoku.NewSudoku().ReadFromStrings(lines)
+	sudoku, err := sudoku.NewSudoku([9][9]int{}).ReadFromStrings(lines)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Print("Sudoku: \n", sudoku.String(), "\n")
 
-	solution, err := sudoku.Solve()
+	s := solver.NewSolver(sudoku)
+	solution, err := s.Solve()
 	if err != nil {
 		log.Fatal(err)
 	}

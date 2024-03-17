@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"sudoku/sudoku"
+	"sudoku/sudoku/solver"
 )
 
 var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
@@ -21,7 +22,7 @@ type model struct {
 	puzzleVals         [9][9]int
 
 	sudoku *sudoku.Sudoku
-	solver *sudoku.Solver
+	solver *solver.Solver
 }
 
 var _ tea.Model = &model{}
@@ -30,9 +31,23 @@ func newModel() *model {
 	m := &model{
 		cursorX: 0,
 		cursorY: 0,
-		sudoku:  sudoku.NewSudoku(),
+		sudoku:  sudoku.NewSudoku([9][9]int{}),
 	}
-	m.solver = sudoku.NewSolver(m.sudoku)
+	m.solver = solver.NewSolver(m.sudoku)
+
+	// TODO: Remove this hardcoded puzzle
+	m.sudoku.ReadFromStrings([]string{
+		"      24 ",
+		"9  6 2   ",
+		"    8   5",
+		"2      6 ",
+		"8  2  35 ",
+		"  13     ",
+		"   9614 3",
+		"       8 ",
+		"13   49  ",
+	})
+	m.puzzleVals = m.sudoku.GetBoard()
 
 	return m
 }
@@ -254,7 +269,7 @@ func (m *model) View() string {
 			),
 			puzzleCreationPrompt,
 		)
-	
+
 	regularHelpText := "  ←/↑/↓/→: Navigate • c: Puzzle entry • q: Quit"
 	hintModeHelp := ""
 	if m.showSidePanel {

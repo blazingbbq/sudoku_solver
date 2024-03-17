@@ -1,7 +1,9 @@
-package sudoku
+package solver
 
 import (
 	"testing"
+
+	"sudoku/sudoku"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -9,14 +11,14 @@ import (
 func TestSolver(t *testing.T) {
 	tests := []struct {
 		name      string
-		sudoku    *Sudoku
-		expected  *Sudoku
+		sudoku    *sudoku.Sudoku
+		expected  *sudoku.Sudoku
 		expectErr bool
 	}{
 		{
 			name: "solved",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{5, 3, 4, 6, 7, 8, 9, 1, 2},
 					{6, 7, 2, 1, 9, 5, 3, 4, 8},
 					{1, 9, 8, 3, 4, 2, 5, 6, 7},
@@ -27,9 +29,9 @@ func TestSolver(t *testing.T) {
 					{2, 8, 7, 4, 1, 9, 6, 3, 5},
 					{3, 4, 5, 2, 8, 6, 1, 7, 9},
 				},
-			},
-			expected: &Sudoku{
-				board: [9][9]int{
+			),
+			expected: sudoku.NewSudoku(
+				[9][9]int{
 					{5, 3, 4, 6, 7, 8, 9, 1, 2},
 					{6, 7, 2, 1, 9, 5, 3, 4, 8},
 					{1, 9, 8, 3, 4, 2, 5, 6, 7},
@@ -40,13 +42,13 @@ func TestSolver(t *testing.T) {
 					{2, 8, 7, 4, 1, 9, 6, 3, 5},
 					{3, 4, 5, 2, 8, 6, 1, 7, 9},
 				},
-			},
+			),
 			expectErr: false,
 		},
 		{
 			name: "unsolvable",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{0, 0, 0, 0, 0, 0, 0, 0, 2},
 					{0, 0, 0, 0, 0, 0, 0, 0, 8},
 					{0, 0, 0, 0, 0, 0, 0, 0, 7},
@@ -57,14 +59,14 @@ func TestSolver(t *testing.T) {
 					{0, 0, 0, 0, 0, 0, 0, 0, 5},
 					{0, 0, 0, 0, 0, 0, 0, 0, 9},
 				},
-			},
+			),
 			expected:  nil,
 			expectErr: true,
 		},
 		{
 			name: "invalid",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{5, 5, 4, 6, 7, 8, 9, 1, 2},
 					{5, 7, 2, 1, 9, 5, 3, 4, 8},
 					{1, 9, 8, 3, 4, 2, 5, 6, 7},
@@ -75,14 +77,14 @@ func TestSolver(t *testing.T) {
 					{2, 8, 7, 4, 1, 9, 6, 3, 5},
 					{3, 4, 5, 2, 8, 6, 1, 7, 9},
 				},
-			},
+			),
 			expected:  nil,
 			expectErr: true,
 		},
 		{
 			name: "solveable - Easy",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{0, 8, 9, 1, 0, 0, 0, 0, 7},
 					{6, 0, 0, 2, 0, 0, 1, 0, 8},
 					{0, 7, 0, 0, 0, 0, 5, 0, 0},
@@ -93,9 +95,9 @@ func TestSolver(t *testing.T) {
 					{3, 0, 7, 0, 0, 2, 0, 0, 4},
 					{4, 9, 0, 0, 0, 0, 0, 6, 0},
 				},
-			},
-			expected: &Sudoku{
-				board: [9][9]int{
+			),
+			expected: sudoku.NewSudoku(
+				[9][9]int{
 					{5, 8, 9, 1, 3, 6, 4, 2, 7},
 					{6, 3, 4, 2, 7, 5, 1, 9, 8},
 					{2, 7, 1, 4, 9, 8, 5, 3, 6},
@@ -106,13 +108,13 @@ func TestSolver(t *testing.T) {
 					{3, 5, 7, 6, 8, 2, 9, 1, 4},
 					{4, 9, 8, 3, 1, 7, 2, 6, 5},
 				},
-			},
+			),
 			expectErr: false,
 		},
 		{
 			name: "solveable - Medium",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{4, 0, 0, 0, 1, 0, 8, 0, 6},
 					{0, 1, 0, 0, 7, 0, 0, 0, 0},
 					{7, 8, 0, 0, 0, 9, 0, 0, 0},
@@ -123,9 +125,9 @@ func TestSolver(t *testing.T) {
 					{0, 0, 0, 0, 9, 0, 0, 3, 0},
 					{9, 0, 2, 0, 3, 0, 0, 0, 8},
 				},
-			},
-			expected: &Sudoku{
-				board: [9][9]int{
+			),
+			expected: sudoku.NewSudoku(
+				[9][9]int{
 					{4, 5, 9, 2, 1, 3, 8, 7, 6},
 					{2, 1, 6, 4, 7, 8, 9, 5, 3},
 					{7, 8, 3, 6, 5, 9, 2, 4, 1},
@@ -136,13 +138,13 @@ func TestSolver(t *testing.T) {
 					{1, 7, 8, 5, 9, 2, 6, 3, 4},
 					{9, 4, 2, 7, 3, 6, 5, 1, 8},
 				},
-			},
+			),
 			expectErr: false,
 		},
 		{
 			name: "solveable - Medium 2",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{0, 1, 0, 0, 7, 5, 0, 3, 0},
 					{0, 0, 2, 0, 0, 0, 8, 0, 0},
 					{0, 0, 3, 0, 0, 0, 0, 0, 0},
@@ -153,9 +155,9 @@ func TestSolver(t *testing.T) {
 					{3, 0, 1, 0, 0, 0, 7, 0, 0},
 					{0, 8, 0, 7, 9, 0, 0, 6, 0},
 				},
-			},
-			expected: &Sudoku{
-				board: [9][9]int{
+			),
+			expected: sudoku.NewSudoku(
+				[9][9]int{
 					{8, 1, 6, 2, 7, 5, 9, 3, 4},
 					{7, 4, 2, 9, 3, 6, 8, 1, 5},
 					{9, 5, 3, 8, 4, 1, 6, 2, 7},
@@ -166,13 +168,13 @@ func TestSolver(t *testing.T) {
 					{3, 2, 1, 5, 6, 4, 7, 8, 9},
 					{5, 8, 4, 7, 9, 3, 1, 6, 2},
 				},
-			},
+			),
 			expectErr: false,
 		},
 		{
 			name: "solveable - Medium 3",
-			sudoku: &Sudoku{
-				board: [9][9]int{
+			sudoku: sudoku.NewSudoku(
+				[9][9]int{
 					{8, 3, 2, 1, 0, 0, 4, 0, 0},
 					{7, 0, 0, 0, 0, 9, 2, 1, 0},
 					{1, 0, 0, 0, 4, 8, 0, 5, 0},
@@ -183,9 +185,9 @@ func TestSolver(t *testing.T) {
 					{0, 0, 0, 0, 0, 0, 0, 6, 0},
 					{0, 0, 0, 0, 0, 2, 3, 7, 0},
 				},
-			},
-			expected: &Sudoku{
-				board: [9][9]int{
+			),
+			expected: sudoku.NewSudoku(
+				[9][9]int{
 					{8, 3, 2, 1, 7, 5, 4, 9, 6},
 					{7, 4, 5, 3, 6, 9, 2, 1, 8},
 					{1, 9, 6, 2, 4, 8, 7, 5, 3},
@@ -196,7 +198,7 @@ func TestSolver(t *testing.T) {
 					{3, 7, 8, 4, 5, 1, 9, 6, 2},
 					{5, 6, 1, 9, 8, 2, 3, 7, 4},
 				},
-			},
+			),
 			expectErr: false,
 		},
 	}
@@ -216,90 +218,9 @@ func TestSolver(t *testing.T) {
 	}
 }
 
-func TestCell(t *testing.T) {
-	tests := []struct {
-		name        string
-		cell        *cell
-		expectOk    bool
-		expectedVal int
-	}{
-		{
-			name: "single value - bad",
-			cell: &cell{
-				candidates: []int{1, 2, 3},
-			},
-			expectOk: false,
-		},
-		{
-			name: "single value - ok",
-			cell: &cell{
-				candidates: []int{1},
-			},
-			expectOk:    true,
-			expectedVal: 1,
-		},
-		{
-			name: "single value - empty",
-			cell: &cell{
-				candidates: []int{},
-			},
-			expectOk: false,
-		},
-		{
-			name: "single value - row",
-			cell: &cell{
-				candidates: []int{1, 2, 3, 4},
-				row: cellGroup{
-					&cell{value: 1},
-					&cell{value: 2},
-					&cell{candidates: []int{4}},
-				},
-			},
-			expectOk:    true,
-			expectedVal: 3,
-		},
-		{
-			name: "single value - col",
-			cell: &cell{
-				candidates: []int{1, 2, 3, 4},
-				col: cellGroup{
-					&cell{value: 1},
-					&cell{value: 2},
-					&cell{candidates: []int{4}},
-				},
-			},
-			expectOk:    true,
-			expectedVal: 3,
-		},
-		{
-			name: "single value - square",
-			cell: &cell{
-				candidates: []int{1, 2, 3, 4},
-				square: cellGroup{
-					&cell{value: 1},
-					&cell{value: 2},
-					&cell{candidates: []int{4}},
-				},
-			},
-			expectOk:    true,
-			expectedVal: 3,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			value, ok := tt.cell.singleValue()
-			assert.Equal(t, tt.expectOk, ok)
-			if tt.expectOk {
-				assert.Equal(t, tt.expectedVal, value)
-			}
-		})
-	}
-}
-
 func TestSingleValueOnFullBoard(t *testing.T) {
-	sudoku := &Sudoku{
-		board: [9][9]int{
+	sudoku := sudoku.NewSudoku(
+		[9][9]int{
 			{4, 0, 0, 0, 0, 0, 8, 0, 6},
 			{0, 1, 0, 0, 7, 0, 0, 0, 0},
 			{7, 8, 0, 0, 0, 9, 0, 0, 0},
@@ -310,13 +231,13 @@ func TestSingleValueOnFullBoard(t *testing.T) {
 			{0, 0, 0, 0, 9, 0, 0, 3, 0},
 			{9, 0, 2, 0, 3, 0, 0, 0, 8},
 		},
-	}
+	)
 	solver := NewSolver(sudoku)
 
-	v, ok := solver.grid[0][7].singleValue()
+	v, ok := solver.grid[0][7].SingleValue()
 	assert.True(t, ok)
 	assert.Equal(t, 7, v)
 
-	v, ok = solver.grid[3][2].singleValue()
+	v, ok = solver.grid[3][2].SingleValue()
 	assert.False(t, ok)
 }

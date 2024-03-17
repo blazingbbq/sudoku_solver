@@ -11,8 +11,10 @@ type Sudoku struct {
 	board [_gridSize][_gridSize]int
 }
 
-func NewSudoku() *Sudoku {
-	return &Sudoku{}
+func NewSudoku(board [9][9]int) *Sudoku {
+	return &Sudoku{
+		board: board,
+	}
 }
 
 func (s *Sudoku) GetBoard() [9][9]int {
@@ -87,15 +89,6 @@ func (s *Sudoku) String() string {
 	return result
 }
 
-func (s *Sudoku) Solve() (*Sudoku, error) {
-	if !s.isValid() {
-		return nil, errors.New("invalid sudoku")
-	}
-
-	solver := NewSolver(s)
-	return solver.Solve()
-}
-
 func (s *Sudoku) IsCellValid(x, y int) bool {
 	if s.board[x][y] == 0 {
 		return true
@@ -128,7 +121,7 @@ func (s *Sudoku) IsCellValid(x, y int) bool {
 	return true
 }
 
-func (s *Sudoku) isValid() bool {
+func (s *Sudoku) IsValid() bool {
 	for i := 0; i < _gridSize; i++ {
 		for j := 0; j < _gridSize; j++ {
 			if s.board[i][j] != 0 && !s.IsCellValid(i, j) {
@@ -139,7 +132,7 @@ func (s *Sudoku) isValid() bool {
 	return true
 }
 
-func (s *Sudoku) isSolved() bool {
+func (s *Sudoku) IsSolved() bool {
 	for i := 0; i < _gridSize; i++ {
 		for j := 0; j < _gridSize; j++ {
 			if s.board[i][j] == 0 {
