@@ -138,6 +138,7 @@ func (s *Solver) updateCandidates() {
 	s.grid.forEachCell(func(c *cell) {
 		c.forEachRegion(func(r cellGroup) {
 			updateNakedPairs(c, r)
+			updateHiddenPairs(c, r)
 			updateNakedTriples(c, r)
 		})
 	})

@@ -47,6 +47,7 @@ func (cgv cellGroupValues) equals(other cellGroupValues) bool {
 	return true
 }
 
+// equalOrSubsetOf returns true if cgv is a subset of other
 func (cgv cellGroupValues) equalOrSubsetOf(other cellGroupValues) bool {
 	for _, v := range cgv {
 		if !other.contains(v) {
@@ -81,6 +82,33 @@ func (cgv cellGroupValues) transform(f func(int) (int, bool)) cellGroupValues {
 		}
 	}
 	return result
+}
+
+// filter returns a new cellGroupValues with values for which f returns true
+func (cgv cellGroupValues) filter(f func(int) bool) cellGroupValues {
+	result := cellGroupValues{}
+	for _, v := range cgv {
+		if f(v) {
+			result = result.append(v)
+		}
+	}
+	return result
+}
+
+// forEach calls f for each value in cgv
+func (cgv cellGroupValues) forEach(f func(int)) {
+	for _, v := range cgv {
+		f(v)
+	}
+}
+
+// forEachUniquePair calls f for each unique pair of values in cgv
+func (cgv cellGroupValues) forEachUniquePair(f func(int, int)) {
+	for i, v1 := range cgv {
+		for _, v2 := range cgv[i+1:] {
+			f(v1, v2)
+		}
+	}
 }
 
 // filter returns a new cellGroup with cells for which f returns true
